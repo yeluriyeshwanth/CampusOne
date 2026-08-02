@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import API_URL from '../api'
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -22,7 +23,7 @@ function Dashboard() {
           return
         }
 
-        const response = await fetch('/api/user/dashboard', {
+        const response = await fetch(`${API_URL}/api/user/dashboard`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
