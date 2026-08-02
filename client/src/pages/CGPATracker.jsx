@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import API_URL from '../api'
 
 function CGPATracker() {
   const navigate = useNavigate()
@@ -51,7 +52,7 @@ function CGPATracker() {
   useEffect(() => {
     const fetchCGPA = async () => {
       try {
-        const response = await fetch('/api/cgpa', {
+        const response = await fetch(`${API_URL}/api/cgpa`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -104,7 +105,7 @@ function CGPATracker() {
     setError('')
 
     try {
-      const response = await fetch('/api/cgpa', {
+      const response = await fetch(`${API_URL}/api/cgpa`, {
         method: 'POST',
 
         headers: {
@@ -190,8 +191,8 @@ function CGPATracker() {
 
     try {
       const response = await fetch(
-        `/api/cgpa/${editingId}`,
-        {
+    `${API_URL}/api/cgpa/${editingId}`,
+  {
           method: 'PUT',
 
           headers: {
@@ -255,7 +256,7 @@ function CGPATracker() {
 
     try {
       const response = await fetch(
-        `/api/cgpa/${id}`,
+    `${API_URL}/api/cgpa/${id}`,
         {
           method: 'DELETE',
 
@@ -478,6 +479,7 @@ function CGPATracker() {
               onChange={handleChange}
               placeholder="Credits"
               min="1"
+              step="0.5"
               required
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
