@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -8,12 +8,8 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Get logged-in user from localStorage
-  const storedUser = localStorage.getItem('user')
-  const user = storedUser ? JSON.parse(storedUser) : null
-
   // ============================================
-  // FETCH DASHBOARD DATA FROM BACKEND
+  // FETCH DASHBOARD DATA
   // ============================================
 
   useEffect(() => {
@@ -21,7 +17,6 @@ function Dashboard() {
       try {
         const token = localStorage.getItem('token')
 
-        // If token doesn't exist, send user to login
         if (!token) {
           navigate('/login')
           return
@@ -36,10 +31,12 @@ function Dashboard() {
         const data = await response.json()
 
         if (!response.ok) {
-          throw new Error(data.message || 'Failed to load dashboard')
+          throw new Error(
+            data.message || 'Failed to load dashboard'
+          )
         }
 
-        setDashboardData(data.user)
+        setDashboardData(data)
       } catch (error) {
         console.error('Dashboard error:', error)
         setError(error.message)
@@ -63,7 +60,7 @@ function Dashboard() {
   }
 
   // ============================================
-  // LOADING SCREEN
+  // LOADING
   // ============================================
 
   if (loading) {
@@ -77,7 +74,7 @@ function Dashboard() {
   }
 
   // ============================================
-  // ERROR SCREEN
+  // ERROR
   // ============================================
 
   if (error) {
@@ -106,53 +103,88 @@ function Dashboard() {
   }
 
   // ============================================
-  // DASHBOARD
+  // DATA FROM BACKEND
+  // ============================================
+
+  const user = dashboardData?.user
+
+  const stats = dashboardData?.stats || {
+    cgpa: 0,
+    attendance: 0,
+    pendingAssignments: 0,
+    assignmentCompletion: 0
+  }
+
+  const upcomingAssignments =
+    dashboardData?.upcomingAssignments || []
+
+  // ============================================
+  // DASHBOARD UI
   // ============================================
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex">
 
-      {/* SIDEBAR */}
+      {/* ========================================
+          SIDEBAR
+      ======================================== */}
 
       <aside className="w-64 min-h-screen bg-slate-900 border-r border-slate-800 p-6">
-
-        {/* LOGO */}
 
         <h1 className="text-2xl font-bold text-blue-500">
           CampusOne
         </h1>
 
-        {/* NAVIGATION */}
-
         <nav className="mt-10 space-y-2">
 
-          <button className="w-full text-left rounded-lg bg-blue-600 px-4 py-3 font-medium">
+          {/* DASHBOARD */}
+
+          <button
+            className="w-full text-left rounded-lg bg-blue-600 px-4 py-3 font-medium"
+          >
             Dashboard
           </button>
 
+          {/* ATTENDANCE */}
+
           <button
             onClick={() => navigate('/attendance')}
-             className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white"
           >
-  Attendance
-</button>
+            Attendance
+          </button>
+
+          {/* ASSIGNMENTS */}
 
           <button
-          onClick={() => navigate('/assignments')}
-          className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white"
+            onClick={() => navigate('/assignments')}
+            className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white"
           >
-  Assignments
-</button>
+            Assignments
+          </button>
 
-          <button className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white">
+          {/* CGPA */}
+
+          <button
+            onClick={() => navigate('/cgpa')}
+            className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white"
+          >
             CGPA Tracker
           </button>
 
-          <button className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white">
+          {/* PLACEMENT */}
+
+          <button
+            className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white"
+          >
             Placement
           </button>
 
-          <button className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white">
+          {/* RESUME */}
+
+          <button
+            className="w-full text-left rounded-lg px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white"
+          >
             Resume Builder
           </button>
 
@@ -173,7 +205,9 @@ function Dashboard() {
 
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* ========================================
+          MAIN CONTENT
+      ======================================== */}
 
       <main className="flex-1 p-8">
 
@@ -184,7 +218,7 @@ function Dashboard() {
           <div>
 
             <h2 className="text-3xl font-bold">
-              Welcome back, {dashboardData?.name || user?.name || 'Student'} 👋
+              Welcome back, {user?.name || 'Student'} 👋
             </h2>
 
             <p className="mt-2 text-slate-400">
@@ -197,53 +231,61 @@ function Dashboard() {
 
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 font-bold">
 
-            {dashboardData?.name?.charAt(0).toUpperCase() ||
-              user?.name?.charAt(0).toUpperCase() ||
-              'S'}
+            {user?.name?.charAt(0).toUpperCase() || 'S'}
 
           </div>
 
         </div>
 
-        {/* ========================================= */}
-        {/* OVERVIEW CARDS */}
-        {/* ========================================= */}
+        {/* ========================================
+            OVERVIEW CARDS
+        ======================================== */}
 
         <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
 
+          {/* REAL CGPA */}
+
           <DashboardCard
             title="Current CGPA"
-            value={dashboardData?.cgpa ?? 0}
+            value={Number(stats.cgpa || 0).toFixed(2)}
             description="Overall academic performance"
           />
 
+          {/* REAL ATTENDANCE */}
+
           <DashboardCard
             title="Attendance"
-            value={`${dashboardData?.attendance ?? 0}%`}
+            value={`${stats.attendance || 0}%`}
             description="Overall attendance"
           />
 
+          {/* REAL PENDING ASSIGNMENTS */}
+
           <DashboardCard
             title="Assignments"
-            value="0"
+            value={stats.pendingAssignments || 0}
             description="Pending assignments"
           />
 
+          {/* REAL ASSIGNMENT COMPLETION */}
+
           <DashboardCard
-            title="Placement Progress"
-            value={`${dashboardData?.placementProgress ?? 0}%`}
-            description="Profile completion"
+            title="Assignment Completion"
+            value={`${stats.assignmentCompletion || 0}%`}
+            description="Assignments completed"
           />
 
         </div>
 
-        {/* ========================================= */}
-        {/* LOWER SECTION */}
-        {/* ========================================= */}
+        {/* ========================================
+            LOWER SECTION
+        ======================================== */}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
 
-          {/* UPCOMING ASSIGNMENTS */}
+          {/* ======================================
+              UPCOMING ASSIGNMENTS
+          ====================================== */}
 
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
 
@@ -253,7 +295,10 @@ function Dashboard() {
                 Upcoming Assignments
               </h3>
 
-              <button className="text-sm font-medium text-blue-400 hover:text-blue-300">
+              <button
+                onClick={() => navigate('/assignments')}
+                className="text-sm font-medium text-blue-400 hover:text-blue-300"
+              >
                 View all
               </button>
 
@@ -261,31 +306,38 @@ function Dashboard() {
 
             <div className="mt-6 space-y-4">
 
-              <Assignment
-                subject="Data Mining"
-                title="Association Rule Mining"
-                due="Due tomorrow"
-              />
+              {upcomingAssignments.length === 0 ? (
 
-              <Assignment
-                subject="Computer Networks"
-                title="Checksum Implementation"
-                due="Due in 3 days"
-              />
+                <div className="rounded-lg bg-slate-800/60 p-6 text-center">
 
-              <Assignment
-                subject="Web Development"
-                title="React Dashboard"
-                due="Due in 5 days"
-              />
+                  <p className="text-slate-400">
+                    No upcoming assignments.
+                  </p>
+
+                </div>
+
+              ) : (
+
+                upcomingAssignments.map((assignment) => (
+
+                  <Assignment
+                    key={assignment._id}
+                    subject={assignment.subject}
+                    title={assignment.title}
+                    dueDate={assignment.dueDate}
+                  />
+
+                ))
+
+              )}
 
             </div>
 
           </section>
 
-          {/* ========================================= */}
-          {/* ACADEMIC OVERVIEW */}
-          {/* ========================================= */}
+          {/* ======================================
+              ACADEMIC OVERVIEW
+          ====================================== */}
 
           <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
 
@@ -295,24 +347,18 @@ function Dashboard() {
 
             <div className="mt-6 space-y-6">
 
-              <ProgressBar
-                title="Semester Progress"
-                value={dashboardData?.semesterProgress ?? 0}
-              />
+              {/* REAL ATTENDANCE */}
 
               <ProgressBar
                 title="Attendance"
-                value={dashboardData?.attendance ?? 0}
+                value={stats.attendance}
               />
+
+              {/* REAL ASSIGNMENT COMPLETION */}
 
               <ProgressBar
                 title="Assignment Completion"
-                value={dashboardData?.assignmentCompletion ?? 0}
-              />
-
-              <ProgressBar
-                title="Placement Preparation"
-                value={dashboardData?.placementProgress ?? 0}
+                value={stats.assignmentCompletion}
               />
 
             </div>
@@ -332,7 +378,11 @@ function Dashboard() {
 // DASHBOARD CARD
 // ============================================
 
-function DashboardCard({ title, value, description }) {
+function DashboardCard({
+  title,
+  value,
+  description
+}) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
 
@@ -354,10 +404,26 @@ function DashboardCard({ title, value, description }) {
 
 
 // ============================================
-// ASSIGNMENT
+// ASSIGNMENT CARD
 // ============================================
 
-function Assignment({ subject, title, due }) {
+function Assignment({
+  subject,
+  title,
+  dueDate
+}) {
+
+  const formattedDate = dueDate
+    ? new Date(dueDate).toLocaleDateString(
+        'en-IN',
+        {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        }
+      )
+    : 'No due date'
+
   return (
     <div className="rounded-lg bg-slate-800/60 p-4">
 
@@ -370,7 +436,7 @@ function Assignment({ subject, title, due }) {
       </p>
 
       <p className="mt-2 text-sm text-slate-400">
-        {due}
+        Due {formattedDate}
       </p>
 
     </div>
@@ -382,10 +448,15 @@ function Assignment({ subject, title, due }) {
 // PROGRESS BAR
 // ============================================
 
-function ProgressBar({ title, value }) {
+function ProgressBar({
+  title,
+  value
+}) {
 
-  // Prevent values below 0 or above 100
-  const safeValue = Math.min(Math.max(Number(value) || 0, 0), 100)
+  const safeValue = Math.min(
+    Math.max(Number(value) || 0, 0),
+    100
+  )
 
   return (
     <div>

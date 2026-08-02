@@ -1,30 +1,57 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-function Assignments() {
+function CGPATracker() {
   const navigate = useNavigate()
 
-  const [assignments, setAssignments] = useState([])
+  const [semesters, setSemesters] = useState([])
+  const [cgpa, setCgpa] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
-    subject: '',
-    title: '',
-    description: '',
-    dueDate: ''
+    semester: '',
+    sgpa: '',
+    credits: ''
   })
+
+  const [editingId, setEditingId] = useState(null)
 
   const token = localStorage.getItem('token')
 
   // ============================================
-  // FETCH ASSIGNMENTS
+  // CALCULATE CGPA LOCALLY
+  // ============================================
+
+  const calculateCGPA = (semesterData) => {
+    const totalCredits = semesterData.reduce(
+      (sum, item) => sum + Number(item.credits),
+      0
+    )
+
+    const totalWeightedPoints = semesterData.reduce(
+      (sum, item) =>
+        sum + Number(item.sgpa) * Number(item.credits),
+      0
+    )
+
+    if (totalCredits === 0) {
+      return 0
+    }
+
+    return Number(
+      (totalWeightedPoints / totalCredits).toFixed(2)
+    )
+  }
+
+  // ============================================
+  // FETCH CGPA DATA
   // ============================================
 
   useEffect(() => {
-    const fetchAssignments = async () => {
+    const fetchCGPA = async () => {
       try {
-        const response = await fetch('/api/assignments', {
+        const response = await fetch('/api/cgpa', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -34,11 +61,12 @@ function Assignments() {
 
         if (!response.ok) {
           throw new Error(
-            data.message || 'Failed to load assignments'
+            data.message || 'Failed to load CGPA data'
           )
         }
 
-        setAssignments(data.assignments || [])
+        setSemesters(data.semesters || [])
+        setCgpa(data.cgpa || 0)
       } catch (error) {
         console.error(error)
         setError(error.message)
@@ -52,7 +80,7 @@ function Assignments() {
       return
     }
 
-    fetchAssignments()
+    fetchCGPA()
   }, [navigate, token])
 
   // ============================================
@@ -67,7 +95,7 @@ function Assignments() {
   }
 
   // ============================================
-  // ADD ASSIGNMENT
+  // ADD SEMESTER
   // ============================================
 
   const handleSubmit = async (e) => {
@@ -76,7 +104,7 @@ function Assignments() {
     setError('')
 
     try {
-      const response = await fetch('/api/assignments', {
+      const response = await fetch('/api/cgpa', {
         method: 'POST',
 
         headers: {
@@ -85,10 +113,9 @@ function Assignments() {
         },
 
         body: JSON.stringify({
-          subject: formData.subject,
-          title: formData.title,
-          description: formData.description,
-          dueDate: formData.dueDate
+          semester: Number(formData.semester),
+          sgpa: Number(formData.sgpa),
+          credits: Number(formData.credits)
         })
       })
 
@@ -96,20 +123,23 @@ function Assignments() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || 'Failed to add assignment'
+          data.message || 'Failed to add semester'
         )
       }
 
-      setAssignments((previousAssignments) => [
-        ...previousAssignments,
-        data.assignment
-      ])
+      const updatedSemesters = [
+        ...semesters,
+        data.semester
+      ].sort((a, b) => a.semester - b.semester)
+
+      setSemesters(updatedSemesters)
+
+      setCgpa(calculateCGPA(updatedSemesters))
 
       setFormData({
-        subject: '',
-        title: '',
-        description: '',
-        dueDate: ''
+        semester: '',
+        sgpa: '',
+        credits: ''
       })
     } catch (error) {
       console.error(error)
@@ -118,21 +148,61 @@ function Assignments() {
   }
 
   // ============================================
-  // TOGGLE COMPLETE / PENDING
+  // START EDITING
   // ============================================
 
-  const toggleAssignment = async (id) => {
+  const startEditing = (semester) => {
+    setEditingId(semester._id)
+
+    setFormData({
+      semester: semester.semester,
+      sgpa: semester.sgpa,
+      credits: semester.credits
+    })
+
+    setError('')
+  }
+
+  // ============================================
+  // CANCEL EDITING
+  // ============================================
+
+  const cancelEditing = () => {
+    setEditingId(null)
+
+    setFormData({
+      semester: '',
+      sgpa: '',
+      credits: ''
+    })
+
+    setError('')
+  }
+
+  // ============================================
+  // UPDATE SEMESTER
+  // ============================================
+
+  const updateSemester = async (e) => {
+    e.preventDefault()
+
     setError('')
 
     try {
       const response = await fetch(
-        `/api/assignments/${id}/toggle`,
+        `/api/cgpa/${editingId}`,
         {
           method: 'PUT',
 
           headers: {
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
-          }
+          },
+
+          body: JSON.stringify({
+            sgpa: Number(formData.sgpa),
+            credits: Number(formData.credits)
+          })
         }
       )
 
@@ -140,17 +210,28 @@ function Assignments() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || 'Failed to update assignment'
+          data.message || 'Failed to update semester'
         )
       }
 
-      setAssignments((previousAssignments) =>
-        previousAssignments.map((assignment) =>
-          assignment._id === id
-            ? data.assignment
-            : assignment
-        )
+      const updatedSemesters = semesters.map(
+        (semester) =>
+          semester._id === editingId
+            ? data.semester
+            : semester
       )
+
+      setSemesters(updatedSemesters)
+
+      setCgpa(calculateCGPA(updatedSemesters))
+
+      setEditingId(null)
+
+      setFormData({
+        semester: '',
+        sgpa: '',
+        credits: ''
+      })
     } catch (error) {
       console.error(error)
       setError(error.message)
@@ -158,12 +239,12 @@ function Assignments() {
   }
 
   // ============================================
-  // DELETE ASSIGNMENT
+  // DELETE SEMESTER
   // ============================================
 
-  const deleteAssignment = async (id) => {
+  const deleteSemester = async (id) => {
     const confirmed = window.confirm(
-      'Are you sure you want to delete this assignment?'
+      'Are you sure you want to delete this semester?'
     )
 
     if (!confirmed) {
@@ -174,7 +255,7 @@ function Assignments() {
 
     try {
       const response = await fetch(
-        `/api/assignments/${id}`,
+        `/api/cgpa/${id}`,
         {
           method: 'DELETE',
 
@@ -188,41 +269,26 @@ function Assignments() {
 
       if (!response.ok) {
         throw new Error(
-          data.message || 'Failed to delete assignment'
+          data.message || 'Failed to delete semester'
         )
       }
 
-      setAssignments((previousAssignments) =>
-        previousAssignments.filter(
-          (assignment) => assignment._id !== id
-        )
+      const updatedSemesters = semesters.filter(
+        (semester) => semester._id !== id
       )
+
+      setSemesters(updatedSemesters)
+
+      setCgpa(calculateCGPA(updatedSemesters))
+
+      if (editingId === id) {
+        cancelEditing()
+      }
     } catch (error) {
       console.error(error)
       setError(error.message)
     }
   }
-
-  // ============================================
-  // CALCULATIONS
-  // ============================================
-
-  const pendingAssignments = assignments.filter(
-    (assignment) => !assignment.completed
-  )
-
-  const completedAssignments = assignments.filter(
-    (assignment) => assignment.completed
-  )
-
-  const totalAssignments = assignments.length
-
-  const completionPercentage =
-    totalAssignments === 0
-      ? 0
-      : Math.round(
-          (completedAssignments.length / totalAssignments) * 100
-        )
 
   // ============================================
   // LOGOUT
@@ -267,17 +333,17 @@ function Assignments() {
           </button>
 
           <button
-            className="w-full rounded-lg bg-blue-600 px-4 py-3 text-left font-medium"
+            onClick={() => navigate('/assignments')}
+            className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
             Assignments
           </button>
 
           <button
-          onClick={() => navigate('/cgpa')}
-          className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="w-full rounded-lg bg-blue-600 px-4 py-3 text-left font-medium"
           >
-  CGPA Tracker
-</button>
+            CGPA Tracker
+          </button>
 
           <button
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
@@ -306,141 +372,136 @@ function Assignments() {
 
       </aside>
 
-      {/* MAIN */}
+      {/* MAIN CONTENT */}
 
       <main className="flex-1 p-8">
 
         {/* HEADER */}
 
         <div>
-
           <h2 className="text-3xl font-bold">
-            Assignments
+            CGPA Tracker
           </h2>
 
           <p className="mt-2 text-slate-400">
-            Manage your college assignments and deadlines.
+            Track your semester-wise academic performance.
           </p>
-
         </div>
 
-        {/* OVERVIEW */}
+        {/* OVERVIEW CARDS */}
 
         <div className="mt-8 grid gap-6 md:grid-cols-3">
 
           <StatCard
-            title="Total Assignments"
-            value={totalAssignments}
+            title="Current CGPA"
+            value={Number(cgpa).toFixed(2)}
           />
 
           <StatCard
-            title="Pending"
-            value={pendingAssignments.length}
+            title="Semesters Completed"
+            value={semesters.length}
           />
 
           <StatCard
-            title="Completed"
-            value={completedAssignments.length}
+            title="Total Credits"
+            value={semesters.reduce(
+              (sum, semester) =>
+                sum + Number(semester.credits),
+              0
+            )}
           />
 
         </div>
 
-        {/* COMPLETION PROGRESS */}
-
-        <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
-
-          <div className="flex justify-between">
-
-            <div>
-
-              <h3 className="text-lg font-semibold">
-                Assignment Completion
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-400">
-                Your overall assignment progress
-              </p>
-
-            </div>
-
-            <span className="font-semibold text-blue-400">
-              {completionPercentage}%
-            </span>
-
-          </div>
-
-          <div className="mt-5 h-2 rounded-full bg-slate-800">
-
-            <div
-              className="h-2 rounded-full bg-blue-600 transition-all duration-500"
-              style={{
-                width: `${completionPercentage}%`
-              }}
-            />
-
-          </div>
-
-        </section>
-
-        {/* ADD ASSIGNMENT */}
+        {/* ADD / EDIT SEMESTER */}
 
         <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
 
           <h3 className="text-xl font-semibold">
-            Add Assignment
+            {editingId
+              ? 'Edit Semester'
+              : 'Add Semester'}
           </h3>
 
           <form
-            onSubmit={handleSubmit}
-            className="mt-6 grid gap-4 md:grid-cols-2"
+            onSubmit={
+              editingId
+                ? updateSemester
+                : handleSubmit
+            }
+            className="mt-6 grid gap-4 md:grid-cols-4"
           >
 
-            <input
-              type="text"
-              name="subject"
-              value={formData.subject}
+            <select
+              name="semester"
+              value={formData.semester}
               onChange={handleChange}
-              placeholder="Subject"
+              required
+              disabled={Boolean(editingId)}
+              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500 disabled:opacity-50"
+            >
+
+              <option value="">
+                Select semester
+              </option>
+
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(
+                (semester) => (
+                  <option
+                    key={semester}
+                    value={semester}
+                  >
+                    Semester {semester}
+                  </option>
+                )
+              )}
+
+            </select>
+
+            <input
+              type="number"
+              name="sgpa"
+              value={formData.sgpa}
+              onChange={handleChange}
+              placeholder="SGPA"
+              min="0"
+              max="10"
+              step="0.01"
               required
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
 
             <input
-              type="text"
-              name="title"
-              value={formData.title}
+              type="number"
+              name="credits"
+              value={formData.credits}
               onChange={handleChange}
-              placeholder="Assignment title"
+              placeholder="Credits"
+              min="1"
               required
-              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
-            />
-
-            <input
-              type="date"
-              name="dueDate"
-              value={formData.dueDate}
-              onChange={handleChange}
-              required
-              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
-            />
-
-            <input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Description (optional)"
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
 
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700 md:col-span-2"
+              className="rounded-lg bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
             >
-              Add Assignment
+              {editingId
+                ? 'Update Semester'
+                : 'Add Semester'}
             </button>
 
           </form>
+
+          {editingId && (
+            <button
+              type="button"
+              onClick={cancelEditing}
+              className="mt-4 text-sm font-medium text-slate-400 hover:text-white"
+            >
+              Cancel editing
+            </button>
+          )}
 
           {error && (
             <p className="mt-4 text-sm text-red-400">
@@ -450,26 +511,26 @@ function Assignments() {
 
         </section>
 
-        {/* ASSIGNMENT LIST */}
+        {/* SEMESTER PERFORMANCE */}
 
         <section className="mt-8">
 
           <h3 className="text-xl font-semibold">
-            Your Assignments
+            Semester Performance
           </h3>
 
           {loading ? (
 
             <p className="mt-6 text-slate-400">
-              Loading assignments...
+              Loading CGPA data...
             </p>
 
-          ) : assignments.length === 0 ? (
+          ) : semesters.length === 0 ? (
 
             <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-8 text-center">
 
               <p className="text-slate-400">
-                No assignments added yet.
+                No semesters added yet.
               </p>
 
             </div>
@@ -478,13 +539,13 @@ function Assignments() {
 
             <div className="mt-6 space-y-4">
 
-              {assignments.map((assignment) => (
+              {semesters.map((semester) => (
 
-                <AssignmentCard
-                  key={assignment._id}
-                  assignment={assignment}
-                  onToggle={toggleAssignment}
-                  onDelete={deleteAssignment}
+                <SemesterCard
+                  key={semester._id}
+                  semester={semester}
+                  onEdit={startEditing}
+                  onDelete={deleteSemester}
                 />
 
               ))}
@@ -524,18 +585,18 @@ function StatCard({ title, value }) {
 
 
 // ============================================
-// ASSIGNMENT CARD
+// SEMESTER CARD
 // ============================================
 
-function AssignmentCard({
-  assignment,
-  onToggle,
+function SemesterCard({
+  semester,
+  onEdit,
   onDelete
 }) {
-
-  const dueDate = new Date(
-    assignment.dueDate
-  ).toLocaleDateString()
+  const percentage = Math.min(
+    Number(semester.sgpa) * 10,
+    100
+  )
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
@@ -544,65 +605,56 @@ function AssignmentCard({
 
         <div>
 
-          <p className="text-sm font-medium text-blue-400">
-            {assignment.subject}
-          </p>
-
-          <h4
-            className={`mt-1 text-lg font-semibold ${
-              assignment.completed
-                ? 'line-through text-slate-500'
-                : ''
-            }`}
-          >
-            {assignment.title}
+          <h4 className="text-lg font-semibold">
+            Semester {semester.semester}
           </h4>
 
-          {assignment.description && (
-            <p className="mt-2 text-sm text-slate-400">
-              {assignment.description}
-            </p>
-          )}
-
-          <p className="mt-3 text-sm text-slate-500">
-            Due: {dueDate}
+          <p className="mt-2 text-sm text-slate-400">
+            Credits: {semester.credits}
           </p>
 
         </div>
 
-        <div>
+        <div className="text-right">
 
-          {assignment.completed ? (
+          <p className="text-sm text-slate-400">
+            SGPA
+          </p>
 
-            <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-medium text-green-400">
-              Completed
-            </span>
-
-          ) : (
-
-            <span className="rounded-full bg-yellow-500/10 px-3 py-1 text-sm font-medium text-yellow-400">
-              Pending
-            </span>
-
-          )}
+          <p className="text-2xl font-bold text-blue-400">
+            {Number(semester.sgpa).toFixed(2)}
+          </p>
 
         </div>
 
       </div>
 
+      {/* SGPA PROGRESS */}
+
+      <div className="mt-5 h-2 rounded-full bg-slate-800">
+
+        <div
+          className="h-2 rounded-full bg-blue-600 transition-all"
+          style={{
+            width: `${percentage}%`
+          }}
+        />
+
+      </div>
+
+      {/* ACTIONS */}
+
       <div className="mt-5 flex gap-3">
 
         <button
-          onClick={() => onToggle(assignment._id)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-700"
+          onClick={() => onEdit(semester)}
+          className="rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400 hover:bg-blue-500/20"
         >
-          {assignment.completed
-            ? 'Mark Pending'
-            : 'Mark Complete'}
+          Edit
         </button>
 
         <button
-          onClick={() => onDelete(assignment._id)}
+          onClick={() => onDelete(semester._id)}
           className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
         >
           Delete
@@ -614,4 +666,4 @@ function AssignmentCard({
   )
 }
 
-export default Assignments
+export default CGPATracker
