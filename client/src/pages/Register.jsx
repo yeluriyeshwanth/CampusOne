@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import API_URL from '../api'
 
 function Register() {
   // Stores everything the user types
@@ -62,9 +63,7 @@ function Register() {
   }
 
   try {
-    const response = await fetch(
-      'http://localhost:5001/api/auth/register',
-      {
+    const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
 
         headers: {
