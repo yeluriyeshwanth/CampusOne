@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import API_URL from '../api'
 
 function Assignments() {
   const navigate = useNavigate()
@@ -24,7 +25,7 @@ function Assignments() {
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const response = await fetch('/api/assignments', {
+        const response = await fetch(`${API_URL}/api/assignments`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -76,7 +77,7 @@ function Assignments() {
     setError('')
 
     try {
-      const response = await fetch('/api/assignments', {
+      const response = await fetch(`${API_URL}/api/assignments`, {
         method: 'POST',
 
         headers: {
@@ -126,7 +127,7 @@ function Assignments() {
 
     try {
       const response = await fetch(
-        `/api/assignments/${id}/toggle`,
+  `${API_URL}/api/assignments/${id}/toggle`,
         {
           method: 'PUT',
 
@@ -174,7 +175,7 @@ function Assignments() {
 
     try {
       const response = await fetch(
-        `/api/assignments/${id}`,
+  `${API_URL}/api/assignments/${id}`,
         {
           method: 'DELETE',
 

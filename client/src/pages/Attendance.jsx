@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
+import API_URL from '../api'
 
 function Attendance() {
   const navigate = useNavigate()
@@ -23,11 +24,14 @@ function Attendance() {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await fetch('/api/attendance', {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const response = await fetch(
+          `${API_URL}/api/attendance`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        })
+        )
 
         const data = await response.json()
 
@@ -39,7 +43,7 @@ function Attendance() {
 
         setSubjects(data.subjects || [])
       } catch (error) {
-        console.error(error)
+        console.error('Fetch attendance error:', error)
         setError(error.message)
       } finally {
         setLoading(false)
@@ -74,10 +78,14 @@ function Attendance() {
 
     setError('')
 
-    const attendedClasses = Number(formData.attendedClasses)
-    const totalClasses = Number(formData.totalClasses)
+    const attendedClasses = Number(
+      formData.attendedClasses
+    )
 
-    // Basic validation
+    const totalClasses = Number(
+      formData.totalClasses
+    )
+
     if (attendedClasses > totalClasses) {
       setError(
         'Attended classes cannot be greater than total classes'
@@ -86,20 +94,23 @@ function Attendance() {
     }
 
     try {
-      const response = await fetch('/api/attendance', {
-        method: 'POST',
+      const response = await fetch(
+        `${API_URL}/api/attendance`,
+        {
+          method: 'POST',
 
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
 
-        body: JSON.stringify({
-          subject: formData.subject.trim(),
-          attendedClasses,
-          totalClasses
-        })
-      })
+          body: JSON.stringify({
+            subject: formData.subject.trim(),
+            attendedClasses,
+            totalClasses
+          })
+        }
+      )
 
       const data = await response.json()
 
@@ -120,7 +131,7 @@ function Attendance() {
         totalClasses: ''
       })
     } catch (error) {
-      console.error(error)
+      console.error('Add attendance error:', error)
       setError(error.message)
     }
   }
@@ -130,40 +141,40 @@ function Attendance() {
   // ============================================
 
   const updateAttendance = async (id, type) => {
-    setError('')
+  setError('')
 
-    try {
-      const response = await fetch(
-        `/api/attendance/${id}/${type}`,
-        {
-          method: 'PUT',
+  try {
+    const response = await fetch(
+      `${API_URL}/api/attendance/${id}/${type}`,
+      {
+        method: 'PUT',
 
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      )
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || 'Failed to update attendance'
-        )
       }
+    )
 
-      setSubjects((previousSubjects) =>
-        previousSubjects.map((subject) =>
-          subject._id === id
-            ? data.attendance
-            : subject
-        )
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || 'Failed to update attendance'
       )
-    } catch (error) {
-      console.error(error)
-      setError(error.message)
     }
+
+    setSubjects((previousSubjects) =>
+      previousSubjects.map((subject) =>
+        subject._id === id
+          ? data.attendance
+          : subject
+      )
+    )
+  } catch (error) {
+    console.error('Update attendance error:', error)
+    setError(error.message)
   }
+}
 
   // ============================================
   // DELETE SUBJECT
@@ -182,7 +193,7 @@ function Attendance() {
 
     try {
       const response = await fetch(
-        `/api/attendance/${id}`,
+        `${API_URL}/api/attendance/${id}`,
         {
           method: 'DELETE',
 
@@ -206,7 +217,7 @@ function Attendance() {
         )
       )
     } catch (error) {
-      console.error(error)
+      console.error('Delete attendance error:', error)
       setError(error.message)
     }
   }
@@ -230,7 +241,10 @@ function Attendance() {
   const overallAttendance =
     totalClasses === 0
       ? 0
-      : ((totalAttended / totalClasses) * 100).toFixed(1)
+      : (
+          (totalAttended / totalClasses) *
+          100
+        ).toFixed(1)
 
   // ============================================
   // LOGOUT
@@ -239,6 +253,7 @@ function Attendance() {
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+
     navigate('/login')
   }
 
@@ -276,15 +291,15 @@ function Attendance() {
             onClick={() => navigate('/assignments')}
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
-  Assignments
-</button>
+            Assignments
+          </button>
 
           <button
-          onClick={() => navigate('/cgpa')}
-          className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
+            onClick={() => navigate('/cgpa')}
+            className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
-  CGPA Tracker
-</button>
+            CGPA Tracker
+          </button>
 
           <button
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
@@ -336,7 +351,8 @@ function Attendance() {
           </h3>
 
           <p className="mt-2 text-sm text-slate-500">
-            {totalAttended} attended out of {totalClasses} classes
+            {totalAttended} attended out of{' '}
+            {totalClasses} classes
           </p>
 
         </div>
@@ -420,11 +436,9 @@ function Attendance() {
           ) : subjects.length === 0 ? (
 
             <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-8 text-center">
-
               <p className="text-slate-400">
                 No subjects added yet.
               </p>
-
             </div>
 
           ) : (
@@ -434,11 +448,17 @@ function Attendance() {
               {subjects.map((subject) => {
 
                 const percentage =
-                  subject.totalClasses === 0
+                  Number(subject.totalClasses) === 0
                     ? 0
                     : (
-                        (subject.attendedClasses /
-                          subject.totalClasses) *
+                        (
+                          Number(
+                            subject.attendedClasses
+                          ) /
+                          Number(
+                            subject.totalClasses
+                          )
+                        ) *
                         100
                       ).toFixed(1)
 
@@ -458,7 +478,8 @@ function Attendance() {
 
                         <p className="mt-1 text-sm text-slate-400">
                           {subject.attendedClasses} /{' '}
-                          {subject.totalClasses} classes
+                          {subject.totalClasses}{' '}
+                          classes
                         </p>
 
                       </div>
