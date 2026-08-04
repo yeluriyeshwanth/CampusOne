@@ -447,22 +447,24 @@ function Attendance() {
 
               {subjects.map((subject) => {
 
-                const percentage =
-                  Number(subject.totalClasses) === 0
-                    ? 0
-                    : (
-                        (
-                          Number(
-                            subject.attendedClasses
-                          ) /
-                          Number(
-                            subject.totalClasses
-                          )
-                        ) *
-                        100
-                      ).toFixed(1)
+  const percentage =
+    Number(subject.totalClasses) === 0
+      ? 0
+      : (
+          (
+            Number(subject.attendedClasses) /
+            Number(subject.totalClasses)
+          ) *
+          100
+        ).toFixed(1)
 
-                return (
+  // Get attendance prediction for this subject
+  const prediction = getAttendancePrediction(
+    subject.attendedClasses,
+    subject.totalClasses
+  )
+
+  return (
                   <div
                     key={subject._id}
                     className="rounded-xl border border-slate-800 bg-slate-900 p-6"
@@ -492,58 +494,94 @@ function Attendance() {
 
                     {/* PROGRESS BAR */}
 
-                    <div className="mt-5 h-2 rounded-full bg-slate-800">
+                    {/* PROGRESS BAR */}
 
-                      <div
-                        className="h-2 rounded-full bg-blue-600 transition-all"
-                        style={{
-                          width: `${Math.min(
-                            Number(percentage),
-                            100
-                          )}%`
-                        }}
-                      />
+<div className="mt-5 h-2 rounded-full bg-slate-800">
 
-                    </div>
+  <div
+    className="h-2 rounded-full bg-blue-600 transition-all"
+    style={{
+      width: `${Math.min(
+        Number(percentage),
+        100
+      )}%`
+    }}
+  />
 
-                    {/* BUTTONS */}
+</div>
 
-                    <div className="mt-6 flex flex-wrap gap-2">
 
-                      <button
-                        onClick={() =>
-                          updateAttendance(
-                            subject._id,
-                            'attended'
-                          )
-                        }
-                        className="rounded-lg bg-green-500/10 px-3 py-2 text-sm font-medium text-green-400 hover:bg-green-500/20"
-                      >
-                        + Attended
-                      </button>
+{/* ATTENDANCE PREDICTION */}
 
-                      <button
-                        onClick={() =>
-                          updateAttendance(
-                            subject._id,
-                            'missed'
-                          )
-                        }
-                        className="rounded-lg bg-yellow-500/10 px-3 py-2 text-sm font-medium text-yellow-400 hover:bg-yellow-500/20"
-                      >
-                        + Missed
-                      </button>
+<div className="mt-5 rounded-lg border border-slate-700 bg-slate-800/50 p-4">
 
-                      <button
-                        onClick={() =>
-                          deleteSubject(subject._id)
-                        }
-                        className="rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
-                      >
-                        Delete
-                      </button>
+  <div className="flex items-center justify-between gap-3">
 
-                    </div>
+    <p className="text-sm font-medium text-slate-400">
+      Attendance Insight
+    </p>
+
+    <span
+      className={`text-sm font-semibold ${
+        prediction.type === 'safe'
+          ? 'text-green-400'
+          : prediction.type === 'warning'
+          ? 'text-yellow-400'
+          : prediction.type === 'danger'
+          ? 'text-red-400'
+          : 'text-slate-400'
+      }`}
+    >
+      {prediction.status}
+    </span>
+
+  </div>
+
+  <p className="mt-2 text-sm leading-relaxed text-slate-300">
+    {prediction.message}
+  </p>
+
+</div>
+
+
+{/* BUTTONS */}
+
+<div className="mt-6 flex flex-wrap gap-2">
+
+  <button
+    onClick={() =>
+      updateAttendance(
+        subject._id,
+        'attended'
+      )
+    }
+    className="rounded-lg bg-green-500/10 px-3 py-2 text-sm font-medium text-green-400 hover:bg-green-500/20"
+  >
+    + Attended
+  </button>
+
+  <button
+    onClick={() =>
+      updateAttendance(
+        subject._id,
+        'missed'
+      )
+    }
+    className="rounded-lg bg-yellow-500/10 px-3 py-2 text-sm font-medium text-yellow-400 hover:bg-yellow-500/20"
+  >
+    + Missed
+  </button>
+
+  <button
+    onClick={() =>
+      deleteSubject(subject._id)
+    }
+    className="rounded-lg bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
+  >
+    Delete
+  </button>
+
+</div>
 
                   </div>
                 )
@@ -559,6 +597,62 @@ function Attendance() {
 
     </div>
   )
+}
+// ============================================
+// ATTENDANCE PREDICTOR
+// ============================================
+
+function getAttendancePrediction(attended, total) {
+  const attendedClasses = Number(attended) || 0
+  const totalClasses = Number(total) || 0
+
+  if (totalClasses === 0) {
+    return {
+      status: 'No Data',
+      message: 'Start marking classes to get attendance insights.',
+      type: 'neutral'
+    }
+  }
+
+  const percentage =
+    (attendedClasses / totalClasses) * 100
+
+  // BELOW 75%
+  if (percentage < 75) {
+    const classesNeeded = Math.ceil(
+      (0.75 * totalClasses - attendedClasses) / 0.25
+    )
+
+    return {
+      status: 'Below 75%',
+      message: `Attend the next ${classesNeeded} ${
+        classesNeeded === 1 ? 'class' : 'classes'
+      } to reach 75%.`,
+      type: 'danger'
+    }
+  }
+
+  // 75% OR ABOVE
+  const classesCanMiss = Math.floor(
+    attendedClasses / 0.75 - totalClasses
+  )
+
+  if (classesCanMiss === 0) {
+    return {
+      status: 'At Risk',
+      message:
+        'You cannot miss the next class if you want to maintain at least 75%.',
+      type: 'warning'
+    }
+  }
+
+  return {
+    status: 'Safe',
+    message: `You can miss ${classesCanMiss} ${
+      classesCanMiss === 1 ? 'class' : 'classes'
+    } and still maintain at least 75%.`,
+    type: 'safe'
+  }
 }
 
 export default Attendance
