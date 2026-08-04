@@ -161,6 +161,82 @@ router.put('/:id/missed', authMiddleware, async (req, res) => {
   }
 })
 
+// ============================================
+// EDIT SUBJECT
+// PUT /api/attendance/:id
+// ============================================
+
+router.put('/:id', authMiddleware, async (req, res) => {
+  try {
+    const {
+      subject,
+      attendedClasses,
+      totalClasses
+    } = req.body
+
+    // Validate subject name
+    if (!subject || !subject.trim()) {
+      return res.status(400).json({
+        message: 'Subject name is required'
+      })
+    }
+
+    const attended = Number(attendedClasses)
+    const total = Number(totalClasses)
+
+    // Validate numbers
+    if (
+      Number.isNaN(attended) ||
+      Number.isNaN(total) ||
+      attended < 0 ||
+      total < 0
+    ) {
+      return res.status(400).json({
+        message: 'Attendance values must be valid numbers'
+      })
+    }
+
+    // Attended cannot be greater than total
+    if (attended > total) {
+      return res.status(400).json({
+        message:
+          'Attended classes cannot be greater than total classes'
+      })
+    }
+
+    // Find only this user's subject
+    const attendance = await Attendance.findOne({
+      _id: req.params.id,
+      user: req.userId
+    })
+
+    if (!attendance) {
+      return res.status(404).json({
+        message: 'Subject not found'
+      })
+    }
+
+    // Update values
+    attendance.subject = subject.trim()
+    attendance.attendedClasses = attended
+    attendance.totalClasses = total
+
+    await attendance.save()
+
+    res.status(200).json({
+      message: 'Attendance updated successfully',
+      attendance
+    })
+
+  } catch (error) {
+    console.error('Edit attendance error:', error)
+
+    res.status(500).json({
+      message: 'Server error'
+    })
+  }
+})
+
 
 // ============================================
 // DELETE SUBJECT
