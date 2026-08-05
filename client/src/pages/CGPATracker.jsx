@@ -18,6 +18,19 @@ function CGPATracker() {
 
   const [editingId, setEditingId] = useState(null)
 
+  // ============================================
+// CGPA GOAL TRACKER
+// ============================================
+
+const [goalData, setGoalData] = useState({
+  targetCGPA: '',
+  remainingSemesters: '',
+  creditsPerSemester: ''
+})
+
+const [goalResult, setGoalResult] = useState(null)
+
+
   const token = localStorage.getItem('token')
 
   // ============================================
@@ -44,6 +57,104 @@ function CGPATracker() {
       (totalWeightedPoints / totalCredits).toFixed(2)
     )
   }
+
+  // ============================================
+// HANDLE CGPA GOAL INPUT
+// ============================================
+
+const handleGoalChange = (e) => {
+  setGoalData((previousData) => ({
+    ...previousData,
+    [e.target.name]: e.target.value
+  }))
+
+  // Remove old result when user changes input
+  setGoalResult(null)
+}
+
+// ============================================
+// CALCULATE CGPA GOAL
+// ============================================
+
+const calculateGoal = (e) => {
+  e.preventDefault()
+
+  const targetCGPA = Number(goalData.targetCGPA)
+  const remainingSemesters = Number(goalData.remainingSemesters)
+  const creditsPerSemester = Number(goalData.creditsPerSemester)
+
+  if (
+    targetCGPA <= 0 ||
+    targetCGPA > 10 ||
+    remainingSemesters <= 0 ||
+    creditsPerSemester <= 0
+  ) {
+    setGoalResult({
+      type: 'error',
+      message: 'Please enter valid goal details.'
+    })
+    return
+  }
+
+  const completedCredits = semesters.reduce(
+    (sum, semester) => sum + Number(semester.credits),
+    0
+  )
+
+  const completedPoints = semesters.reduce(
+    (sum, semester) =>
+      sum +
+      Number(semester.sgpa) *
+        Number(semester.credits),
+    0
+  )
+
+  const remainingCredits =
+    remainingSemesters * creditsPerSemester
+
+  const totalCredits =
+    completedCredits + remainingCredits
+
+  const requiredPoints =
+    targetCGPA * totalCredits - completedPoints
+
+  const requiredAverageSGPA =
+    requiredPoints / remainingCredits
+
+  if (requiredAverageSGPA > 10) {
+    setGoalResult({
+      type: 'impossible',
+      message: `Reaching ${targetCGPA.toFixed(
+        2
+      )} CGPA is not possible with the remaining semesters.`,
+      requiredSGPA: requiredAverageSGPA
+    })
+
+    return
+  }
+
+  if (Number(cgpa) >= targetCGPA) {
+    setGoalResult({
+      type: 'achieved',
+      message: `You have already achieved your target CGPA of ${targetCGPA.toFixed(
+        2
+      )}.`,
+      requiredSGPA: 0
+    })
+
+    return
+  }
+
+  setGoalResult({
+    type: 'possible',
+    message: `You need an average SGPA of ${requiredAverageSGPA.toFixed(
+      2
+    )} in the remaining ${remainingSemesters} ${
+      remainingSemesters === 1 ? 'semester' : 'semesters'
+    } to reach a CGPA of ${targetCGPA.toFixed(2)}.`,
+    requiredSGPA: requiredAverageSGPA
+  })
+}
 
   // ============================================
   // FETCH CGPA DATA
@@ -413,6 +524,133 @@ function CGPATracker() {
           />
 
         </div>
+
+        {/* ============================================ */}
+{/* CGPA GOAL TRACKER */}
+{/* ============================================ */}
+
+<section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
+
+  <div>
+    <h3 className="text-xl font-semibold">
+      CGPA Goal Tracker
+    </h3>
+
+    <p className="mt-2 text-sm text-slate-400">
+      Find the average SGPA you need in your remaining semesters
+      to reach your target CGPA.
+    </p>
+  </div>
+
+  <form
+    onSubmit={calculateGoal}
+    className="mt-6 grid gap-4 md:grid-cols-4"
+  >
+
+    <input
+      type="number"
+      name="targetCGPA"
+      value={goalData.targetCGPA}
+      onChange={handleGoalChange}
+      placeholder="Target CGPA"
+      min="0.01"
+      max="10"
+      step="0.01"
+      required
+      className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+    />
+
+    <input
+      type="number"
+      name="remainingSemesters"
+      value={goalData.remainingSemesters}
+      onChange={handleGoalChange}
+      placeholder="Remaining semesters"
+      min="1"
+      max="8"
+      step="1"
+      required
+      className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+    />
+
+    <input
+      type="number"
+      name="creditsPerSemester"
+      value={goalData.creditsPerSemester}
+      onChange={handleGoalChange}
+      placeholder="Credits per semester"
+      min="0.5"
+      step="0.5"
+      required
+      className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+    />
+
+    <button
+      type="submit"
+      className="rounded-lg bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+    >
+      Calculate Goal
+    </button>
+
+  </form>
+
+  {/* GOAL RESULT */}
+
+  {goalResult && (
+    <div
+      className={`mt-6 rounded-lg border p-5 ${
+        goalResult.type === 'possible'
+          ? 'border-green-500/30 bg-green-500/10'
+          : goalResult.type === 'achieved'
+          ? 'border-blue-500/30 bg-blue-500/10'
+          : goalResult.type === 'impossible'
+          ? 'border-red-500/30 bg-red-500/10'
+          : 'border-yellow-500/30 bg-yellow-500/10'
+      }`}
+    >
+
+      <p
+        className={`font-semibold ${
+          goalResult.type === 'possible'
+            ? 'text-green-400'
+            : goalResult.type === 'achieved'
+            ? 'text-blue-400'
+            : goalResult.type === 'impossible'
+            ? 'text-red-400'
+            : 'text-yellow-400'
+        }`}
+      >
+        {goalResult.type === 'possible'
+          ? 'Goal is achievable'
+          : goalResult.type === 'achieved'
+          ? 'Goal already achieved'
+          : goalResult.type === 'impossible'
+          ? 'Goal is currently not achievable'
+          : 'Check your goal details'}
+      </p>
+
+      <p className="mt-2 text-sm leading-relaxed text-slate-300">
+        {goalResult.message}
+      </p>
+
+      {goalResult.type === 'possible' && (
+        <div className="mt-4">
+
+          <p className="text-sm text-slate-400">
+            Required Average SGPA
+          </p>
+
+          <p className="mt-1 text-3xl font-bold text-green-400">
+            {Number(goalResult.requiredSGPA).toFixed(2)}
+          </p>
+
+        </div>
+      )}
+
+    </div>
+  )}
+
+</section>
 
         {/* ADD / EDIT SEMESTER */}
 
