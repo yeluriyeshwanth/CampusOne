@@ -145,6 +145,99 @@ router.put(
 )
 
 // ============================================
+// EDIT ASSIGNMENT
+// PUT /api/assignments/:id
+// ============================================
+
+router.put(
+  '/:id',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const {
+        subject,
+        title,
+        description,
+        dueDate,
+        priority
+      } = req.body
+
+      // Validate required fields
+      if (!subject || !subject.trim()) {
+        return res.status(400).json({
+          message: 'Subject is required'
+        })
+      }
+
+      if (!title || !title.trim()) {
+        return res.status(400).json({
+          message: 'Assignment title is required'
+        })
+      }
+
+      if (!dueDate) {
+        return res.status(400).json({
+          message: 'Due date is required'
+        })
+      }
+
+      // Validate priority
+      const validPriorities = [
+        'Low',
+        'Medium',
+        'High'
+      ]
+
+      if (!validPriorities.includes(priority)) {
+        return res.status(400).json({
+          message: 'Invalid priority'
+        })
+      }
+
+      // Find only this user's assignment
+      const assignment = await Assignment.findOne({
+        _id: req.params.id,
+        user: req.userId
+      })
+
+      if (!assignment) {
+        return res.status(404).json({
+          message: 'Assignment not found'
+        })
+      }
+
+      // Update assignment
+      assignment.subject = subject.trim()
+      assignment.title = title.trim()
+
+      assignment.description = description
+        ? description.trim()
+        : ''
+
+      assignment.dueDate = dueDate
+      assignment.priority = priority
+
+      await assignment.save()
+
+      res.status(200).json({
+        message: 'Assignment updated successfully',
+        assignment
+      })
+
+    } catch (error) {
+      console.error(
+        'Edit assignment error:',
+        error
+      )
+
+      res.status(500).json({
+        message: 'Failed to update assignment'
+      })
+    }
+  }
+)
+
+// ============================================
 // DELETE ASSIGNMENT
 // DELETE /api/assignments/:id
 // ============================================

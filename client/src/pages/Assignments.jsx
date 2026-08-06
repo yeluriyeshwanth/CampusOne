@@ -9,6 +9,24 @@ function Assignments() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // ============================================
+  // EDIT STATE
+  // ============================================
+
+  const [editingId, setEditingId] = useState(null)
+
+  const [editData, setEditData] = useState({
+    subject: '',
+    title: '',
+    description: '',
+    dueDate: '',
+    priority: 'Medium'
+  })
+
+  // ============================================
+  // ADD FORM STATE
+  // ============================================
+
   const [formData, setFormData] = useState({
     subject: '',
     title: '',
@@ -61,7 +79,7 @@ function Assignments() {
   }, [navigate, token])
 
   // ============================================
-  // HANDLE INPUT
+  // HANDLE ADD FORM INPUT
   // ============================================
 
   const handleChange = (e) => {
@@ -168,6 +186,134 @@ function Assignments() {
   }
 
   // ============================================
+  // START EDITING
+  // ============================================
+
+  const startEditing = (assignment) => {
+    setEditingId(assignment._id)
+
+    setEditData({
+      subject: assignment.subject,
+      title: assignment.title,
+      description: assignment.description || '',
+      dueDate: assignment.dueDate
+        ? assignment.dueDate.split('T')[0]
+        : '',
+      priority: assignment.priority || 'Medium'
+    })
+
+    setError('')
+  }
+
+  // ============================================
+  // HANDLE EDIT INPUT
+  // ============================================
+
+  const handleEditChange = (e) => {
+    setEditData((previousData) => ({
+      ...previousData,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  // ============================================
+  // CANCEL EDITING
+  // ============================================
+
+  const cancelEditing = () => {
+    setEditingId(null)
+
+    setEditData({
+      subject: '',
+      title: '',
+      description: '',
+      dueDate: '',
+      priority: 'Medium'
+    })
+
+    setError('')
+  }
+
+  // ============================================
+  // SAVE EDIT
+  // ============================================
+
+  const saveEdit = async (id) => {
+    setError('')
+
+    if (!editData.subject.trim()) {
+      setError('Subject is required')
+      return
+    }
+
+    if (!editData.title.trim()) {
+      setError('Assignment title is required')
+      return
+    }
+
+    if (!editData.dueDate) {
+      setError('Due date is required')
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/assignments/${id}`,
+        {
+          method: 'PUT',
+
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+
+          body: JSON.stringify({
+            subject: editData.subject.trim(),
+            title: editData.title.trim(),
+            description: editData.description.trim(),
+            dueDate: editData.dueDate,
+            priority: editData.priority
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            'Failed to update assignment'
+        )
+      }
+
+      setAssignments((previousAssignments) =>
+        previousAssignments.map((assignment) =>
+          assignment._id === id
+            ? data.assignment
+            : assignment
+        )
+      )
+
+      setEditingId(null)
+
+      setEditData({
+        subject: '',
+        title: '',
+        description: '',
+        dueDate: '',
+        priority: 'Medium'
+      })
+    } catch (error) {
+      console.error(
+        'Edit assignment error:',
+        error
+      )
+
+      setError(error.message)
+    }
+  }
+
+  // ============================================
   // DELETE ASSIGNMENT
   // ============================================
 
@@ -207,6 +353,10 @@ function Assignments() {
           (assignment) => assignment._id !== id
         )
       )
+
+      if (editingId === id) {
+        cancelEditing()
+      }
     } catch (error) {
       console.error(error)
       setError(error.message)
@@ -475,13 +625,133 @@ function Assignments() {
 
           </form>
 
-          {error && (
+          {!editingId && error && (
             <p className="mt-4 text-sm text-red-400">
               {error}
             </p>
           )}
 
         </section>
+
+        {/* ============================================ */}
+        {/* EDIT ASSIGNMENT */}
+        {/* ============================================ */}
+
+        {editingId && (
+
+          <section className="mt-8 rounded-xl border border-blue-500/30 bg-slate-900 p-6">
+
+            <h3 className="text-xl font-semibold">
+              Edit Assignment
+            </h3>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Update your assignment details.
+            </p>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+
+              {/* SUBJECT */}
+
+              <input
+                type="text"
+                name="subject"
+                value={editData.subject}
+                onChange={handleEditChange}
+                placeholder="Subject"
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+              />
+
+              {/* TITLE */}
+
+              <input
+                type="text"
+                name="title"
+                value={editData.title}
+                onChange={handleEditChange}
+                placeholder="Assignment title"
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+              />
+
+              {/* DUE DATE */}
+
+              <input
+                type="date"
+                name="dueDate"
+                value={editData.dueDate}
+                onChange={handleEditChange}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+              />
+
+              {/* PRIORITY */}
+
+              <select
+                name="priority"
+                value={editData.priority}
+                onChange={handleEditChange}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+              >
+
+                <option value="Low">
+                  Low Priority
+                </option>
+
+                <option value="Medium">
+                  Medium Priority
+                </option>
+
+                <option value="High">
+                  High Priority
+                </option>
+
+              </select>
+
+              {/* DESCRIPTION */}
+
+              <input
+                type="text"
+                name="description"
+                value={editData.description}
+                onChange={handleEditChange}
+                placeholder="Description (optional)"
+                className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500 md:col-span-2"
+              />
+
+            </div>
+
+            {/* EDIT ERROR */}
+
+            {error && (
+              <p className="mt-4 text-sm text-red-400">
+                {error}
+              </p>
+            )}
+
+            {/* BUTTONS */}
+
+            <div className="mt-5 flex gap-3">
+
+              <button
+                type="button"
+                onClick={() => saveEdit(editingId)}
+                className="rounded-lg bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="rounded-lg bg-slate-700 px-5 py-3 font-semibold hover:bg-slate-600"
+              >
+                Cancel
+              </button>
+
+            </div>
+
+          </section>
+
+        )}
 
         {/* ASSIGNMENT LIST */}
 
@@ -518,6 +788,7 @@ function Assignments() {
                   assignment={assignment}
                   onToggle={toggleAssignment}
                   onDelete={deleteAssignment}
+                  onEdit={startEditing}
                 />
 
               ))}
@@ -648,7 +919,8 @@ function getDeadlineStatus(dueDate, completed) {
 function AssignmentCard({
   assignment,
   onToggle,
-  onDelete
+  onDelete,
+  onEdit
 }) {
 
   const dueDate = new Date(
@@ -657,7 +929,8 @@ function AssignmentCard({
 
   // Existing assignments may not have priority.
   // Treat them as Medium priority.
-  const priority = assignment.priority || 'Medium'
+  const priority =
+    assignment.priority || 'Medium'
 
   const priorityStyles = {
     High: 'bg-red-500/10 text-red-400',
@@ -759,10 +1032,12 @@ function AssignmentCard({
 
       {/* ACTIONS */}
 
-      <div className="mt-5 flex gap-3">
+      <div className="mt-5 flex flex-wrap gap-3">
 
         <button
-          onClick={() => onToggle(assignment._id)}
+          onClick={() =>
+            onToggle(assignment._id)
+          }
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium hover:bg-blue-700"
         >
           {assignment.completed
@@ -771,7 +1046,18 @@ function AssignmentCard({
         </button>
 
         <button
-          onClick={() => onDelete(assignment._id)}
+          onClick={() =>
+            onEdit(assignment)
+          }
+          className="rounded-lg bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400 hover:bg-blue-500/20"
+        >
+          Edit
+        </button>
+
+        <button
+          onClick={() =>
+            onDelete(assignment._id)
+          }
           className="rounded-lg bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
         >
           Delete
