@@ -8,6 +8,8 @@ function Assignments() {
   const [assignments, setAssignments] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filter, setFilter] = useState('All')
 
   // ============================================
   // EDIT STATE
@@ -387,6 +389,64 @@ function Assignments() {
         )
 
   // ============================================
+// SEARCH AND FILTER ASSIGNMENTS
+// ============================================
+
+const filteredAssignments = assignments.filter((assignment) => {
+
+  // SEARCH
+  const search = searchTerm
+    .trim()
+    .toLowerCase()
+
+  const matchesSearch =
+    assignment.subject
+      .toLowerCase()
+      .includes(search) ||
+    assignment.title
+      .toLowerCase()
+      .includes(search)
+
+  if (!matchesSearch) {
+    return false
+  }
+
+  // ALL
+  if (filter === 'All') {
+    return true
+  }
+
+  // PENDING
+  if (filter === 'Pending') {
+    return !assignment.completed
+  }
+
+  // COMPLETED
+  if (filter === 'Completed') {
+    return assignment.completed
+  }
+
+  // HIGH PRIORITY
+  if (filter === 'High') {
+    return (
+      assignment.priority === 'High'
+    )
+  }
+
+  // OVERDUE
+  if (filter === 'Overdue') {
+
+    const deadline = getDeadlineStatus(
+      assignment.dueDate,
+      assignment.completed
+    )
+
+    return deadline.type === 'overdue'
+  }
+
+  return true
+})
+  // ============================================
   // LOGOUT
   // ============================================
 
@@ -760,42 +820,109 @@ function Assignments() {
           <h3 className="text-xl font-semibold">
             Your Assignments
           </h3>
+          {/* SEARCH AND FILTERS */}
+
+<div className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-5">
+
+  {/* SEARCH */}
+
+  <input
+    type="text"
+    value={searchTerm}
+    onChange={(e) =>
+      setSearchTerm(e.target.value)
+    }
+    placeholder="Search by subject or assignment title..."
+    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none placeholder:text-slate-500 focus:border-blue-500"
+  />
+
+  {/* FILTER BUTTONS */}
+
+  <div className="mt-4 flex flex-wrap gap-3">
+
+    {[
+      'All',
+      'Pending',
+      'Completed',
+      'High',
+      'Overdue'
+    ].map((filterOption) => (
+
+      <button
+        key={filterOption}
+        type="button"
+        onClick={() =>
+          setFilter(filterOption)
+        }
+        className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+          filter === filterOption
+            ? 'bg-blue-600 text-white'
+            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
+        }`}
+      >
+        {filterOption === 'High'
+          ? 'High Priority'
+          : filterOption}
+      </button>
+
+    ))}
+
+  </div>
+
+  {/* RESULT COUNT */}
+
+  <p className="mt-4 text-sm text-slate-500">
+    Showing {filteredAssignments.length} of{' '}
+    {assignments.length} assignments
+  </p>
+
+</div>
 
           {loading ? (
 
-            <p className="mt-6 text-slate-400">
-              Loading assignments...
-            </p>
+  <p className="mt-6 text-slate-400">
+    Loading assignments...
+  </p>
 
-          ) : assignments.length === 0 ? (
+) : assignments.length === 0 ? (
 
-            <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-8 text-center">
+  <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-8 text-center">
 
-              <p className="text-slate-400">
-                No assignments added yet.
-              </p>
+    <p className="text-slate-400">
+      No assignments added yet.
+    </p>
 
-            </div>
+  </div>
 
-          ) : (
+) : filteredAssignments.length === 0 ? (
 
-            <div className="mt-6 space-y-4">
+  <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-8 text-center">
 
-              {assignments.map((assignment) => (
+    <p className="text-slate-400">
+      No assignments match your search or filter.
+    </p>
 
-                <AssignmentCard
-                  key={assignment._id}
-                  assignment={assignment}
-                  onToggle={toggleAssignment}
-                  onDelete={deleteAssignment}
-                  onEdit={startEditing}
-                />
+  </div>
 
-              ))}
+) : (
 
-            </div>
+  <div className="mt-6 space-y-4">
 
-          )}
+    {filteredAssignments.map((assignment) => (
+
+      <AssignmentCard
+        key={assignment._id}
+        assignment={assignment}
+        onToggle={toggleAssignment}
+        onDelete={deleteAssignment}
+        onEdit={startEditing}
+      />
+
+    ))}
+
+  </div>
+
+)}
 
         </section>
 
