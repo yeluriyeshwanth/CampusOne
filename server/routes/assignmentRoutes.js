@@ -40,13 +40,32 @@ router.post('/', authMiddleware, async (req, res) => {
       subject,
       title,
       description,
-      dueDate
+      dueDate,
+      priority
     } = req.body
 
+    // Validate required fields
     if (!subject || !title || !dueDate) {
       return res.status(400).json({
         message:
           'Subject, title and due date are required'
+      })
+    }
+
+    // Validate priority
+    const allowedPriorities = [
+      'Low',
+      'Medium',
+      'High'
+    ]
+
+    if (
+      priority &&
+      !allowedPriorities.includes(priority)
+    ) {
+      return res.status(400).json({
+        message:
+          'Priority must be Low, Medium or High'
       })
     }
 
@@ -63,6 +82,10 @@ router.post('/', authMiddleware, async (req, res) => {
 
       dueDate,
 
+      // If frontend does not send priority,
+      // Medium will be used by default
+      priority: priority || 'Medium',
+
       completed: false
     })
 
@@ -71,7 +94,7 @@ router.post('/', authMiddleware, async (req, res) => {
       assignment
     })
   } catch (error) {
-    console.error(error)
+    console.error('Add assignment error:', error)
 
     res.status(500).json({
       message: 'Failed to add assignment'
@@ -112,7 +135,7 @@ router.put(
         assignment
       })
     } catch (error) {
-      console.error(error)
+      console.error('Toggle assignment error:', error)
 
       res.status(500).json({
         message: 'Failed to update assignment'
@@ -134,7 +157,7 @@ router.delete(
       const assignment =
         await Assignment.findOneAndDelete({
           _id: req.params.id,
-          user: req.user.userId
+          user: req.userId
         })
 
       if (!assignment) {
@@ -147,7 +170,7 @@ router.delete(
         message: 'Assignment deleted successfully'
       })
     } catch (error) {
-      console.error(error)
+      console.error('Delete assignment error:', error)
 
       res.status(500).json({
         message: 'Failed to delete assignment'

@@ -31,6 +31,16 @@ const assignmentSchema = new mongoose.Schema(
       required: true
     },
 
+    // ============================================
+    // ASSIGNMENT PRIORITY
+    // ============================================
+
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High'],
+      default: 'Medium'
+    },
+
     completed: {
       type: Boolean,
       default: false

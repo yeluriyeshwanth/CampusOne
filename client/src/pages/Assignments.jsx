@@ -13,7 +13,8 @@ function Assignments() {
     subject: '',
     title: '',
     description: '',
-    dueDate: ''
+    dueDate: '',
+    priority: 'Medium'
   })
 
   const token = localStorage.getItem('token')
@@ -25,11 +26,14 @@ function Assignments() {
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/assignments`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const response = await fetch(
+          `${API_URL}/api/assignments`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        })
+        )
 
         const data = await response.json()
 
@@ -77,21 +81,25 @@ function Assignments() {
     setError('')
 
     try {
-      const response = await fetch(`${API_URL}/api/assignments`, {
-        method: 'POST',
+      const response = await fetch(
+        `${API_URL}/api/assignments`,
+        {
+          method: 'POST',
 
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
 
-        body: JSON.stringify({
-          subject: formData.subject,
-          title: formData.title,
-          description: formData.description,
-          dueDate: formData.dueDate
-        })
-      })
+          body: JSON.stringify({
+            subject: formData.subject,
+            title: formData.title,
+            description: formData.description,
+            dueDate: formData.dueDate,
+            priority: formData.priority
+          })
+        }
+      )
 
       const data = await response.json()
 
@@ -110,7 +118,8 @@ function Assignments() {
         subject: '',
         title: '',
         description: '',
-        dueDate: ''
+        dueDate: '',
+        priority: 'Medium'
       })
     } catch (error) {
       console.error(error)
@@ -127,7 +136,7 @@ function Assignments() {
 
     try {
       const response = await fetch(
-  `${API_URL}/api/assignments/${id}/toggle`,
+        `${API_URL}/api/assignments/${id}/toggle`,
         {
           method: 'PUT',
 
@@ -175,7 +184,7 @@ function Assignments() {
 
     try {
       const response = await fetch(
-  `${API_URL}/api/assignments/${id}`,
+        `${API_URL}/api/assignments/${id}`,
         {
           method: 'DELETE',
 
@@ -222,7 +231,9 @@ function Assignments() {
     totalAssignments === 0
       ? 0
       : Math.round(
-          (completedAssignments.length / totalAssignments) * 100
+          (completedAssignments.length /
+            totalAssignments) *
+            100
         )
 
   // ============================================
@@ -274,11 +285,11 @@ function Assignments() {
           </button>
 
           <button
-          onClick={() => navigate('/cgpa')}
-          className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
+            onClick={() => navigate('/cgpa')}
+            className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
-  CGPA Tracker
-</button>
+            CGPA Tracker
+          </button>
 
           <button
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
@@ -425,13 +436,34 @@ function Assignments() {
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
 
+            {/* PRIORITY */}
+
+            <select
+              name="priority"
+              value={formData.priority}
+              onChange={handleChange}
+              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+            >
+              <option value="Low">
+                Low Priority
+              </option>
+
+              <option value="Medium">
+                Medium Priority
+              </option>
+
+              <option value="High">
+                High Priority
+              </option>
+            </select>
+
             <input
               type="text"
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Description (optional)"
-              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
+              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500 md:col-span-2"
             />
 
             <button
@@ -538,6 +570,16 @@ function AssignmentCard({
     assignment.dueDate
   ).toLocaleDateString()
 
+  // Existing assignments may not have priority.
+  // Treat them as Medium priority.
+  const priority = assignment.priority || 'Medium'
+
+  const priorityStyles = {
+    High: 'bg-red-500/10 text-red-400',
+    Medium: 'bg-yellow-500/10 text-yellow-400',
+    Low: 'bg-green-500/10 text-green-400'
+  }
+
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
 
@@ -569,7 +611,19 @@ function AssignmentCard({
             Due: {dueDate}
           </p>
 
+          {/* PRIORITY BADGE */}
+
+          <span
+            className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-medium ${
+              priorityStyles[priority]
+            }`}
+          >
+            {priority} Priority
+          </span>
+
         </div>
+
+        {/* STATUS */}
 
         <div>
 
@@ -590,6 +644,8 @@ function AssignmentCard({
         </div>
 
       </div>
+
+      {/* ACTIONS */}
 
       <div className="mt-5 flex gap-3">
 
