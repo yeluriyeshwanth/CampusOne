@@ -557,6 +557,91 @@ function StatCard({ title, value }) {
 
 
 // ============================================
+// SMART DEADLINE TRACKER
+// ============================================
+
+function getDeadlineStatus(dueDate, completed) {
+
+  // Completed assignments do not need deadline warnings
+  if (completed) {
+    return {
+      text: 'Completed',
+      type: 'completed'
+    }
+  }
+
+  // Today's date
+  const today = new Date()
+
+  today.setHours(0, 0, 0, 0)
+
+  // Extract only YYYY-MM-DD from MongoDB date
+  const dateOnly = String(dueDate).split('T')[0]
+
+  const [year, month, day] = dateOnly
+    .split('-')
+    .map(Number)
+
+  // Create due date using local time
+  const due = new Date(
+    year,
+    month - 1,
+    day
+  )
+
+  due.setHours(0, 0, 0, 0)
+
+  const millisecondsPerDay =
+    1000 * 60 * 60 * 24
+
+  const differenceInDays = Math.round(
+    (due - today) / millisecondsPerDay
+  )
+
+  // OVERDUE
+
+  if (differenceInDays < 0) {
+
+    const overdueDays = Math.abs(
+      differenceInDays
+    )
+
+    return {
+      text: `Overdue by ${overdueDays} ${
+        overdueDays === 1 ? 'day' : 'days'
+      }`,
+      type: 'overdue'
+    }
+  }
+
+  // DUE TODAY
+
+  if (differenceInDays === 0) {
+    return {
+      text: 'Due Today',
+      type: 'today'
+    }
+  }
+
+  // DUE TOMORROW
+
+  if (differenceInDays === 1) {
+    return {
+      text: 'Due Tomorrow',
+      type: 'tomorrow'
+    }
+  }
+
+  // UPCOMING ASSIGNMENT
+
+  return {
+    text: `${differenceInDays} days remaining`,
+    type: 'upcoming'
+  }
+}
+
+
+// ============================================
 // ASSIGNMENT CARD
 // ============================================
 
@@ -578,6 +663,23 @@ function AssignmentCard({
     High: 'bg-red-500/10 text-red-400',
     Medium: 'bg-yellow-500/10 text-yellow-400',
     Low: 'bg-green-500/10 text-green-400'
+  }
+
+  // ============================================
+  // DEADLINE STATUS
+  // ============================================
+
+  const deadline = getDeadlineStatus(
+    assignment.dueDate,
+    assignment.completed
+  )
+
+  const deadlineStyles = {
+    overdue: 'bg-red-500/10 text-red-400',
+    today: 'bg-orange-500/10 text-orange-400',
+    tomorrow: 'bg-yellow-500/10 text-yellow-400',
+    upcoming: 'bg-blue-500/10 text-blue-400',
+    completed: 'bg-green-500/10 text-green-400'
   }
 
   return (
@@ -611,10 +713,20 @@ function AssignmentCard({
             Due: {dueDate}
           </p>
 
-          {/* PRIORITY BADGE */}
+          {/* SMART DEADLINE TRACKER */}
 
           <span
             className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-medium ${
+              deadlineStyles[deadline.type]
+            }`}
+          >
+            {deadline.text}
+          </span>
+
+          {/* PRIORITY BADGE */}
+
+          <span
+            className={`ml-2 mt-3 inline-block rounded-full px-3 py-1 text-xs font-medium ${
               priorityStyles[priority]
             }`}
           >
