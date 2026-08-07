@@ -7,6 +7,7 @@ import ProtectedRoute from './utils/ProtectedRoute'
 import Attendance from './pages/Attendance'
 import Assignments from './pages/Assignments'
 import CGPATracker from './pages/CGPATracker'
+import Placement from './pages/Placement'
 
 function App() {
   return (
@@ -58,6 +59,10 @@ function App() {
       <CGPATracker />
     </ProtectedRoute>
   }
+/>
+<Route
+  path="/placement"
+  element={<Placement />}
 />
 
     </Routes>

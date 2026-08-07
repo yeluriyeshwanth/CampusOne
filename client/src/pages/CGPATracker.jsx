@@ -458,6 +458,7 @@ const calculateGoal = (e) => {
           </button>
 
           <button
+            onClick={() => navigate('/placement')}
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
             Placement
