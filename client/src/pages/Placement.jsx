@@ -473,9 +473,13 @@ function Placement() {
 
       <aside className="w-64 min-h-screen border-r border-slate-800 bg-slate-900 p-6">
 
-        <h1 className="text-2xl font-bold text-blue-500">
-          CampusOne
-        </h1>
+        <button
+  type="button"
+  onClick={() => navigate('/dashboard')}
+  className="text-2xl font-bold text-blue-500 transition hover:text-blue-400"
+>
+  CampusOne
+</button>
 
         <nav className="mt-10 space-y-2">
 
