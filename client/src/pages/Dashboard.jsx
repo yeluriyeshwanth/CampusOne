@@ -578,11 +578,14 @@ function Dashboard() {
 
           {/* RESUME */}
 
+          {/* RESUME BUILDER */}
+
           <button
-            type="button"
-            className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
+          type="button"
+          onClick={() => navigate('/resume')}
+          className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
-            Resume Builder
+          Resume Builder
           </button>
 
         </nav>
@@ -751,7 +754,7 @@ function Dashboard() {
 
                             {/* ICON */}
 
-                            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-slate-800 text-lg">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-lg">
                               {notification.icon}
                             </div>
 

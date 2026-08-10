@@ -9,7 +9,7 @@ const attendanceRoutes = require('./routes/attendanceRoutes')
 const assignmentRoutes = require('./routes/assignmentRoutes')
 const cgpaRoutes = require('./routes/cgpaRoutes')
 const placementRoutes = require('./routes/placementRoutes')
-
+const resumeRoutes = require('./routes/resumeRoutes')
 // Load variables from .env
 dotenv.config()
 
@@ -24,6 +24,7 @@ app.use('/api/attendance', attendanceRoutes)
 app.use('/api/assignments', assignmentRoutes)
 app.use('/api/cgpa', cgpaRoutes)
 app.use('/api/placements', placementRoutes)
+app.use('/api/resume',resumeRoutes)
 
 // Connect to MongoDBcs
 mongoose

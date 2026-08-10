@@ -8,7 +8,7 @@ import Attendance from './pages/Attendance'
 import Assignments from './pages/Assignments'
 import CGPATracker from './pages/CGPATracker'
 import Placement from './pages/Placement'
-
+import Resume from './pages/Resume'
 function App() {
   return (
     <Routes>
@@ -63,6 +63,10 @@ function App() {
 <Route
   path="/placement"
   element={<Placement />}
+/>
+<Route
+  path="/resume"
+  element={<Resume />}
 />
 
     </Routes>
