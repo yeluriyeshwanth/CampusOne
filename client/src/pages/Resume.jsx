@@ -1011,27 +1011,7 @@ function Resume() {
         y += lines.length * 4.8 + 2
       }
 
-      const addLabelValue = (label, value) => {
-        if (!value) return
-
-        checkPage(6)
-
-        pdf.setFont('helvetica', 'bold')
-        pdf.setFontSize(9.5)
-        pdf.text(`${label}:`, margin, y)
-
-        const labelWidth =
-          pdf.getTextWidth(`${label}: `)
-
-        pdf.setFont('helvetica', 'normal')
-        pdf.text(
-          String(value),
-          margin + labelWidth,
-          y
-        )
-
-        y += 5
-      }
+      
 
       // --------------------------------------------
       // PERSONAL INFORMATION
