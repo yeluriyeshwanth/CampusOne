@@ -513,10 +513,12 @@ const filteredAssignments = assignments.filter((assignment) => {
           </button>
 
           <button
-            className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
-          >
-            Resume Builder
-          </button>
+  type="button"
+  onClick={() => navigate('/resume')}
+  className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
+>
+  Resume Builder
+</button>
 
         </nav>
 
