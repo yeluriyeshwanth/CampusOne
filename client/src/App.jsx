@@ -9,6 +9,7 @@ import Assignments from './pages/Assignments'
 import CGPATracker from './pages/CGPATracker'
 import Placement from './pages/Placement'
 import Resume from './pages/Resume'
+import Assistant from './pages/Assistant'
 function App() {
   return (
     <Routes>
@@ -68,6 +69,7 @@ function App() {
   path="/resume"
   element={<Resume />}
 />
+<Route path="/assistant" element={<Assistant />} />
 
     </Routes>
   )
