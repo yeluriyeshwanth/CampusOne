@@ -10,6 +10,8 @@ const assignmentRoutes = require('./routes/assignmentRoutes')
 const cgpaRoutes = require('./routes/cgpaRoutes')
 const placementRoutes = require('./routes/placementRoutes')
 const resumeRoutes = require('./routes/resumeRoutes')
+const documentRoutes = require("./routes/documentRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 // Load variables from .env
 dotenv.config()
 
@@ -18,6 +20,7 @@ const app = express()
 // Middleware
 app.use(cors())
 app.use(express.json())
+app.use("/uploads", express.static("uploads"));
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/attendance', attendanceRoutes)
@@ -25,6 +28,8 @@ app.use('/api/assignments', assignmentRoutes)
 app.use('/api/cgpa', cgpaRoutes)
 app.use('/api/placements', placementRoutes)
 app.use('/api/resume',resumeRoutes)
+app.use("/api/documents", documentRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Connect to MongoDBcs
 mongoose

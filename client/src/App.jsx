@@ -69,8 +69,14 @@ function App() {
   path="/resume"
   element={<Resume />}
 />
-<Route path="/assistant" element={<Assistant />} />
-
+<Route
+  path="/assistant"
+  element={
+    <ProtectedRoute>
+      <Assistant />
+    </ProtectedRoute>
+  }
+/>
     </Routes>
   )
 }
