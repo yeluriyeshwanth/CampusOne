@@ -2150,6 +2150,14 @@ function Resume() {
             Resume Builder
           </button>
 
+          <button
+  type="button"
+  onClick={() => navigate('/assistant')}
+  className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
+>
+  🤖 AI Assistant
+</button>
+
         </nav>
 
 

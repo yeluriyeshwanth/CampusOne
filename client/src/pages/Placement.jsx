@@ -227,7 +227,6 @@ function Placement() {
 
     setError('')
 
-    // Scroll to edit section
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
@@ -273,10 +272,6 @@ function Placement() {
 
   const saveEdit = async (id) => {
     setError('')
-
-    // ============================================
-    // FRONTEND VALIDATION
-    // ============================================
 
     if (!editData.company.trim()) {
       setError('Company name is required')
@@ -356,10 +351,6 @@ function Placement() {
         )
       }
 
-      // ============================================
-      // UPDATE UI
-      // ============================================
-
       setPlacements((previousPlacements) =>
         previousPlacements.map((placement) =>
           placement._id === id
@@ -367,10 +358,6 @@ function Placement() {
             : placement
         )
       )
-
-      // ============================================
-      // CLOSE EDIT MODE
-      // ============================================
 
       setEditingId(null)
 
@@ -473,63 +460,97 @@ function Placement() {
 
       <aside className="w-64 min-h-screen border-r border-slate-800 bg-slate-900 p-6">
 
+        {/* LOGO */}
+
         <button
-  type="button"
-  onClick={() => navigate('/dashboard')}
-  className="text-2xl font-bold text-blue-500 transition hover:text-blue-400"
->
-  CampusOne
-</button>
+          type="button"
+          onClick={() => navigate('/dashboard')}
+          className="text-2xl font-bold text-blue-500 transition hover:text-blue-400"
+        >
+          CampusOne
+        </button>
+
+        {/* NAVIGATION */}
 
         <nav className="mt-10 space-y-2">
 
+          {/* DASHBOARD */}
+
           <button
+            type="button"
             onClick={() => navigate('/dashboard')}
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
             Dashboard
           </button>
 
+          {/* ATTENDANCE */}
+
           <button
+            type="button"
             onClick={() => navigate('/attendance')}
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
             Attendance
           </button>
 
+          {/* ASSIGNMENTS */}
+
           <button
+            type="button"
             onClick={() => navigate('/assignments')}
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
             Assignments
           </button>
 
+          {/* CGPA */}
+
           <button
+            type="button"
             onClick={() => navigate('/cgpa')}
             className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
           >
             CGPA Tracker
           </button>
 
+          {/* PLACEMENT */}
+
           <button
+            type="button"
             className="w-full rounded-lg bg-blue-600 px-4 py-3 text-left font-medium"
           >
             Placement
           </button>
 
+          {/* RESUME BUILDER */}
+
           <button
-  type="button"
-  onClick={() => navigate('/resume')}
-  className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
->
-  Resume Builder
-</button>
+            type="button"
+            onClick={() => navigate('/resume')}
+            className="w-full rounded-lg px-4 py-3 text-left text-slate-400 hover:bg-slate-800 hover:text-white"
+          >
+            Resume Builder
+          </button>
+
+          {/* AI ASSISTANT */}
+
+          <button
+            type="button"
+            onClick={() => navigate('/assistant')}
+            className="w-full rounded-lg px-4 py-3 text-left text-slate-400 transition hover:bg-slate-800 hover:text-white"
+          >
+            🤖 AI Assistant
+          </button>
 
         </nav>
+
+        {/* LOGOUT */}
 
         <div className="mt-10">
 
           <button
+            type="button"
             onClick={handleLogout}
             className="w-full rounded-lg border border-red-500/30 px-4 py-3 text-left text-red-400 hover:bg-red-500/10"
           >
@@ -575,8 +596,6 @@ function Placement() {
             className="mt-6 grid gap-4 md:grid-cols-2"
           >
 
-            {/* COMPANY */}
-
             <input
               type="text"
               name="company"
@@ -587,8 +606,6 @@ function Placement() {
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
 
-            {/* ROLE */}
-
             <input
               type="text"
               name="role"
@@ -598,8 +615,6 @@ function Placement() {
               required
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
-
-            {/* PACKAGE */}
 
             <input
               type="number"
@@ -612,8 +627,6 @@ function Placement() {
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
 
-            {/* LOCATION */}
-
             <input
               type="text"
               name="location"
@@ -622,8 +635,6 @@ function Placement() {
               placeholder="Location"
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
-
-            {/* APPLIED DATE */}
 
             <div>
 
@@ -641,8 +652,6 @@ function Placement() {
 
             </div>
 
-            {/* DEADLINE */}
-
             <div>
 
               <label className="mb-2 block text-sm text-slate-400">
@@ -659,8 +668,6 @@ function Placement() {
 
             </div>
 
-            {/* MINIMUM CGPA */}
-
             <input
               type="number"
               name="minimumCGPA"
@@ -672,8 +679,6 @@ function Placement() {
               step="0.01"
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
             />
-
-            {/* STATUS */}
 
             <select
               name="status"
@@ -708,8 +713,6 @@ function Placement() {
 
             </select>
 
-            {/* NOTES */}
-
             <textarea
               name="notes"
               value={formData.notes}
@@ -718,8 +721,6 @@ function Placement() {
               rows="3"
               className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500 md:col-span-2"
             />
-
-            {/* ADD BUTTON */}
 
             <button
               type="submit"
@@ -756,8 +757,6 @@ function Placement() {
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
 
-              {/* COMPANY */}
-
               <input
                 type="text"
                 name="company"
@@ -767,8 +766,6 @@ function Placement() {
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
               />
 
-              {/* ROLE */}
-
               <input
                 type="text"
                 name="role"
@@ -777,8 +774,6 @@ function Placement() {
                 placeholder="Role"
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
               />
-
-              {/* PACKAGE */}
 
               <input
                 type="number"
@@ -791,8 +786,6 @@ function Placement() {
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
               />
 
-              {/* LOCATION */}
-
               <input
                 type="text"
                 name="location"
@@ -801,8 +794,6 @@ function Placement() {
                 placeholder="Location"
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
               />
-
-              {/* APPLIED DATE */}
 
               <div>
 
@@ -820,8 +811,6 @@ function Placement() {
 
               </div>
 
-              {/* DEADLINE */}
-
               <div>
 
                 <label className="mb-2 block text-sm text-slate-400">
@@ -838,8 +827,6 @@ function Placement() {
 
               </div>
 
-              {/* MINIMUM CGPA */}
-
               <input
                 type="number"
                 name="minimumCGPA"
@@ -851,8 +838,6 @@ function Placement() {
                 step="0.01"
                 className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 outline-none focus:border-blue-500"
               />
-
-              {/* STATUS */}
 
               <select
                 name="status"
@@ -887,8 +872,6 @@ function Placement() {
 
               </select>
 
-              {/* NOTES */}
-
               <textarea
                 name="notes"
                 value={editData.notes}
@@ -900,15 +883,11 @@ function Placement() {
 
             </div>
 
-            {/* ERROR */}
-
             {error && (
               <p className="mt-4 text-sm text-red-400">
                 {error}
               </p>
             )}
-
-            {/* BUTTONS */}
 
             <div className="mt-5 flex gap-3">
 
@@ -987,7 +966,6 @@ function Placement() {
   )
 }
 
-
 // ============================================
 // APPLICATION PROGRESS STAGES
 // ============================================
@@ -1000,14 +978,12 @@ const placementStages = [
   'Selected'
 ]
 
-
 // ============================================
 // GET APPLICATION STAGE STATUS
 // ============================================
 
 function getStageStatus(currentStatus, stage) {
 
-  // Rejected applications are handled separately
   if (currentStatus === 'Rejected') {
     return 'rejected'
   }
@@ -1028,7 +1004,6 @@ function getStageStatus(currentStatus, stage) {
 
   return 'upcoming'
 }
-
 
 // ============================================
 // PLACEMENT CARD
@@ -1066,27 +1041,19 @@ function PlacementCard({
 
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6">
 
-      {/* ========================================
-          COMPANY + STATUS
-      ======================================== */}
+      {/* COMPANY + STATUS */}
 
       <div className="flex items-start justify-between gap-6">
 
         <div>
 
-          {/* COMPANY */}
-
           <h4 className="text-xl font-semibold">
             {placement.company}
           </h4>
 
-          {/* ROLE */}
-
           <p className="mt-1 text-blue-400">
             {placement.role}
           </p>
-
-          {/* DETAILS */}
 
           <div className="mt-4 space-y-1 text-sm text-slate-400">
 
@@ -1131,8 +1098,6 @@ function PlacementCard({
 
           </div>
 
-          {/* NOTES */}
-
           {placement.notes && (
             <p className="mt-4 text-sm text-slate-500">
               {placement.notes}
@@ -1140,8 +1105,6 @@ function PlacementCard({
           )}
 
         </div>
-
-        {/* STATUS */}
 
         <span
           className={`rounded-full px-3 py-1 text-sm font-medium ${
@@ -1154,10 +1117,7 @@ function PlacementCard({
 
       </div>
 
-
-      {/* ========================================
-          APPLICATION PROGRESS
-      ======================================== */}
+      {/* APPLICATION PROGRESS */}
 
       <div className="mt-6 border-t border-slate-800 pt-5">
 
@@ -1166,8 +1126,6 @@ function PlacementCard({
         </p>
 
         {placement.status === 'Rejected' ? (
-
-          /* REJECTED APPLICATION */
 
           <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
 
@@ -1195,8 +1153,6 @@ function PlacementCard({
 
         ) : (
 
-          /* NORMAL APPLICATION PROGRESS */
-
           <div className="space-y-1">
 
             {placementStages.map(
@@ -1215,11 +1171,7 @@ function PlacementCard({
                     className="flex items-center"
                   >
 
-                    {/* STAGE */}
-
                     <div className="flex items-center gap-3">
-
-                      {/* CIRCLE */}
 
                       <div
                         className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
@@ -1238,8 +1190,6 @@ function PlacementCard({
                           : '○'}
 
                       </div>
-
-                      {/* STAGE NAME */}
 
                       <span
                         className={`text-sm ${
@@ -1267,10 +1217,7 @@ function PlacementCard({
 
       </div>
 
-
-      {/* ========================================
-          ACTIONS
-      ======================================== */}
+      {/* ACTIONS */}
 
       <div className="mt-5 flex gap-3">
 
