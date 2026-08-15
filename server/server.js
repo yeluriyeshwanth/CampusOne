@@ -1,9 +1,11 @@
+const dotenv = require('dotenv')
+
+dotenv.config()
 const express = require('express')
 const cors = require('cors')
-const dotenv = require('dotenv')
 const mongoose = require('mongoose')
-const userRoutes = require('./routes/userRoutes')
 
+const userRoutes = require('./routes/userRoutes')
 const authRoutes = require('./routes/authRoutes')
 const attendanceRoutes = require('./routes/attendanceRoutes')
 const assignmentRoutes = require('./routes/assignmentRoutes')
@@ -13,8 +15,6 @@ const resumeRoutes = require('./routes/resumeRoutes')
 const documentRoutes = require("./routes/documentRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 // Load variables from .env
-dotenv.config()
-
 const app = express()
 
 // Middleware

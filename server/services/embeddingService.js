@@ -1,50 +1,56 @@
-const OLLAMA_URL = "http://localhost:11434";
+const { GoogleGenAI } = require("@google/genai");
 
-const EMBEDDING_MODEL = "nomic-embed-text";
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+const EMBEDDING_MODEL = "gemini-embedding-2";
 
 async function generateEmbedding(text) {
   try {
     if (!text || !text.trim()) {
-      throw new Error("Text is required to generate embedding");
+      throw new Error(
+        "Text is required to generate embedding"
+      );
     }
 
-    const response = await fetch(
-      `${OLLAMA_URL}/api/embeddings`,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify({
-          model: EMBEDDING_MODEL,
-          prompt: text,
-        }),
-      }
+    console.log(
+      "Generating Gemini embedding..."
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    const response = await ai.models.embedContent({
+      model: EMBEDDING_MODEL,
 
+      contents: text,
+
+      config: {
+        outputDimensionality: 768,
+      },
+    });
+
+    if (
+      !response ||
+      !response.embeddings ||
+      !response.embeddings[0] ||
+      !response.embeddings[0].values
+    ) {
       throw new Error(
-        `Ollama embedding request failed: ${response.status} ${errorText}`
+        "Gemini did not return a valid embedding"
       );
     }
 
-    const data = await response.json();
+    const embedding =
+      response.embeddings[0].values;
 
-    if (!data.embedding) {
-      throw new Error(
-        "Ollama did not return an embedding"
-      );
-    }
+    console.log(
+      `Gemini embedding generated: ${embedding.length} dimensions`
+    );
 
-    return data.embedding;
+    return embedding;
 
   } catch (error) {
     console.error(
-      "Embedding generation error:",
+      "Gemini embedding generation error:",
       error
     );
 

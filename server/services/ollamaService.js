@@ -1,88 +1,77 @@
-async function generateAnswer(question, context) {
+const { GoogleGenAI } = require("@google/genai");
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+async function generateAnswer(question) {
   try {
-    const response = await fetch(
-      "http://localhost:11434/api/chat",
-      {
-        method: "POST",
+    if (!question || !question.trim()) {
+      throw new Error("Question is required");
+    }
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+    console.log("\n==============================");
+    console.log("GEMINI CHAT REQUEST");
+    console.log("==============================");
+    console.log("Question:", question);
 
-        body: JSON.stringify({
-          model: "qwen3:1.7b",
+    const response = await ai.interactions.create({
+      model: "gemini-3.5-flash",
 
-          messages: [
-            {
-              role: "system",
+      input: `
+You are CampusOne AI, a helpful and intelligent academic assistant.
 
-              content: `
-You are CampusOne AI, an academic assistant.
+Answer the student's question clearly, accurately, and naturally.
 
-Your job is to answer the student's question using
-the provided document context.
+You can answer general questions about:
+- Computer Science
+- Programming
+- Java
+- C
+- C++
+- Python
+- DSA
+- DBMS
+- Operating Systems
+- Computer Networks
+- Data Structures
+- Algorithms
+- Web Development
+- AI and Machine Learning
+- College academics
+- General knowledge
+- Career and placement preparation
 
 IMPORTANT RULES:
 
-1. Use the provided document context as the primary source.
-2. Do not invent information that is not supported by the context.
-3. If the answer cannot be found in the context, say:
-   "I couldn't find the answer in the uploaded documents."
-4. Explain concepts clearly and simply.
-5. You may organize the answer using headings,
-   bullet points, examples, or numbered steps.
-              `,
-            },
-
-            {
-              role: "user",
-
-              content: `
-DOCUMENT CONTEXT:
-
-${context}
-
-END DOCUMENT CONTEXT
-
+1. Answer the question directly.
+2. Explain concepts in simple language.
+3. Use examples when they help.
+4. For programming questions, provide correct and understandable code when requested.
+5. For comparison questions, use tables or bullet points when useful.
+6. Do not claim that information came from uploaded documents.
+7. If you don't know something, say so instead of inventing information.
+8. For current or time-sensitive information, clearly indicate that the information may change.
+9. Do not unnecessarily make every answer extremely long.
+10. Respond like a helpful college-level AI assistant.
 
 STUDENT QUESTION:
 
 ${question}
-              `,
-            },
-          ],
+      `,
+    });
 
-          stream: false,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-
-      throw new Error(
-        `Ollama request failed: ${response.status} ${errorText}`
-      );
+    if (!response || !response.output_text) {
+      throw new Error("Gemini did not return a valid answer");
     }
 
-    const data = await response.json();
+    console.log("\nGemini answer generated successfully.");
 
-    if (
-      !data.message ||
-      !data.message.content
-    ) {
-      throw new Error(
-        "Invalid response received from Ollama"
-      );
-    }
-
-    return data.message.content;
+    return response.output_text;
 
   } catch (error) {
-    console.error(
-      "Ollama answer generation error:",
-      error
-    );
+    console.error("\nGemini chat error:");
+    console.error(error);
 
     throw error;
   }
